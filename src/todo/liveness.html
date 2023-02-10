@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liveness</title>
+</head>
+
+<body>
+    <!-- librerias js de autocaptura SDK web -->
+    <script src="https://sandbox-web-plugins.s3.amazonaws.com/liveness/js/liveness.js"></script>
+    <section>
+        <div class="container" id="liveness"></div>
+        <script>    
+            //llamar a la camara
+            TOCliveness('liveness', {  
+                locale: "es",  
+                session_id: "905f8374a8ab469cb4b3ee4ed60a4070",
+                http: "true",  
+                callback: function(token){ alert(token); },  
+                failure: function(error){ alert(error); }  
+            });
+            TOCliveness();
+        </script>
+    </section>
+</body>
+</html>

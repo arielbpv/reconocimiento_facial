@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Camaras</title>
+    </head>
+
+    <body>
+        <!-- librerias js de autocaptura SDK web -->
+        <script src="https://sandbox-web-plugins.s3.amazonaws.com/autocapture/autocapture.js"></script>  
+        <div class="container" id="container"></div>
+        <script>
+            let token;     
+            //llamar a la camara
+            TOCautocapture('container', {
+                locale: "es",
+                session_id: "<%= datos %>",
+                document_type: "CHL2",
+                document_side: "front", //cara del documento
+                http: "true",
+                callback: function(captured_token, image){ alert(image); },
+                failure: function(error){ alert(error); },
+            });
+            TOCautocapture();
+        </script>
+    </body>
+</html>
