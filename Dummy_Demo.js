@@ -2,6 +2,9 @@ const express = require("express");
 const path = require("path");
 const axios = require('axios');
 
+// =============
+// configuracion
+// =============
 const PORT = 3000;
 const app = express();
 
@@ -12,14 +15,19 @@ app.listen(PORT, () => {
 // Motor de plantilla
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
+app.use(express.json());
 
 
+// =================
+// obtener sessiones
+// =================
 async function session(msg) { 
     const FormData = require('form-data');
     const data = new FormData();
 
     data.append('apiKey', 'c2e473583ef94222ab2298b4aa66ec18');
     data.append('autocapture', 'true');
+    data.append('liveness', 'true');
         
     var config = {
         method: 'post',
@@ -40,6 +48,9 @@ async function session(msg) {
     return msg;
 };
 
+// ========================================
+// funcion para guardar la clave de session
+// ========================================
 async function run() {
     let vacio; 
     try{
@@ -48,64 +59,48 @@ async function run() {
       return error;
     }
 };
-//-----------------------------------
-//- llamando camara documento front -
-//-----------------------------------
-// TOCautocapture('container', {
-//     locale: "es",
-//     session_id: "igresar session key",
-//     document_type: "CHL2",
-//     document_side: "front", //cara del documento
-//     http: "true",
-//     callback: function(captured_token, image){ alert(token); },
-//     failure: function(error){ alert(error); }
-// });
 
-//----------------------------------
-//- llamando camara documento back -
-//----------------------------------
-// TOCautocapture('container', {
-//     locale: "es",
-//     session_id: "igresar session key",
-//     document_type: "CHL2",
-//     document_side: "back", //cara del documento
-//     http: "true",
-//     callback: function(captured_token, image){ alert(token); },
-//     failure: function(error){ alert(error); }
-// });
-
-//------------------------------------
-//- llamando camara documento selfie -
-//------------------------------------ 
-// TOCliveness('liveness', {  
-//     locale: "es",  
-//     session_id: "igresar session key",
-//     http: "true",  
-//     callback: function(token){ alert(token); },  
-//     failure: function(error){ alert(error); }  
-// });
-
+// ====
+// main
+// ====
 function Main(){
 
-    //------------------------------
-    //- obteniendo keys de session -
-    //------------------------------
+    let front_token;
+    let back_token;
+    let liveness_token;    
 
     //session key front
     run().then(result =>{
         session_keyFront = result;
-        let backEnd_Var;
-        console.log("session KEY front: " + session_keyFront);
-        app.get("/camaraF", (req, res) => {
-            res.render('camaraFront', {datos: session_keyFront, backEnd_Var});
-        });
-        
+        console.log("session KEY front: " + session_keyFront);//muestro la key para el frente del documento
         run().then(result =>{
             session_keyBack = result;
-            console.log("session KEY back: " + session_keyBack);
+            console.log("session KEY back: " + session_keyBack);//muestro la key para el reverso del documento
             run().then(result =>{
                 session_keySelfie = result;
-                console.log("session KEY selfie: " + session_keySelfie);
+                console.log("session KEY liveness: " + session_keySelfie);//muestro la key para el liveness
+                //peticion get a doccumento frente
+                app.get("/camaraF", (req, res) => {
+                    res.render('camaraFront', {
+                        front: session_keyFront,
+                        back: session_keyBack,
+                        selfie: session_keySelfie
+                    });
+                });
+                //peticion get a doccumento reverso
+                app.get("/camaraB", (req, res) => {
+                    res.render('camaraBack', {
+                        datos: session_keyBack,
+                    });
+                    var token_CFront = document.querySelector("h1").textContent;
+                    console.log(token_CFront);
+                });
+                //peticion get a liveness
+                app.get("/camaraS", (req, res) => {
+                    res.render('liveness', {
+                        datos: session_keySelfie,
+                    });
+                });
             });
         });
     });
