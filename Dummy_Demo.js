@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 
 // =============
 // configuracion
@@ -44,10 +46,41 @@ async function session(msg) {
     }).catch(function (error) {
         console.log(error);
     });
-
     return msg;
 };
 
+
+// ==============================
+// match entre documento y selfie
+// ==============================
+async function match(front_token,back_token,liveness_token){
+    var axios = require('axios');
+    var FormData = require('form-data');
+    var data = new FormData();
+    data.append('id_front', front_token);
+    data.append('id_back', back_token);
+    data.append('selfie', liveness_token);
+    data.append('apiKey', 'c2e473583ef94222ab2298b4aa66ec18');
+    data.append('documentType', 'CHL2');
+
+    var config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: 'https://sandbox-api.7oc.cl/v2/face-and-document',
+    headers: { 
+        ...data.getHeaders()
+    },
+    data : data
+    };
+
+    axios(config)
+    .then(function (response) {
+    console.log(JSON.stringify(response.data));
+    })
+    .catch(function (error) {
+    console.log(error);
+    });
+};
 // ========================================
 // funcion para guardar la clave de session
 // ========================================
@@ -73,9 +106,11 @@ function Main(){
     run().then(result =>{
         session_keyFront = result;
         console.log("session KEY front: " + session_keyFront);//muestro la key para el frente del documento
+        
         run().then(result =>{
             session_keyBack = result;
             console.log("session KEY back: " + session_keyBack);//muestro la key para el reverso del documento
+            
             run().then(result =>{
                 session_keySelfie = result;
                 console.log("session KEY liveness: " + session_keySelfie);//muestro la key para el liveness
@@ -87,20 +122,14 @@ function Main(){
                         selfie: session_keySelfie
                     });
                 });
-                //peticion get a doccumento reverso
-                app.get("/camaraB", (req, res) => {
-                    res.render('camaraBack', {
-                        datos: session_keyBack,
-                    });
-                    var token_CFront = document.querySelector("h1").textContent;
-                    console.log(token_CFront);
-                });
-                //peticion get a liveness
-                app.get("/camaraS", (req, res) => {
-                    res.render('liveness', {
-                        datos: session_keySelfie,
-                    });
-                });
+                app.get('/Match', function(req, res) {
+                    var front_token = req.query.captured_tokenF;
+                    var back_token = req.query.captured_tokenB;
+                    var liveness_token = req.query.captured_tokenS;
+                    console.log("----------------------- \n" + "tokenFront: " + front_token + "\n" + "tokenBack: " + back_token + "\n" + "tokenSelfie: " + liveness_token);
+                    match(front_token,back_token,liveness_token);
+
+                  });
             });
         });
     });
